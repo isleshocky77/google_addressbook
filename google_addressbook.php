@@ -55,9 +55,9 @@ class google_addressbook extends rcube_plugin
     }
   }
 
-  function get_current_token($from_db = false)
+  function get_current_token()
   {
-    return google_func::get_current_token(rcmail::get_instance()->user, $from_db);
+    return google_func::get_current_token(rcmail::get_instance()->user);
   }
 
   function save_current_token($token)
@@ -85,7 +85,7 @@ class google_addressbook extends rcube_plugin
       $user = $rcmail->user;
       $prefs = array(google_func::$settings_key_auth_code => $auth_code, google_func::$settings_key_token => null);
       if(!$user->save_prefs($prefs)) {
-          $rcmail->display_server_error('errorsaving');
+          rcmail_action::display_server_error('errorsaving');
           return;
       }
       $client = google_func::get_client();
@@ -103,18 +103,18 @@ class google_addressbook extends rcube_plugin
   {
     $rcmail = rcmail::get_instance();
     if($params['section'] == 'addressbook') {
-      $params['blocks'][$this->id]['name'] = $this->abook_name;
+      $params['blocks'][$this->ID]['name'] = $this->abook_name;
 
       $field_id = 'rc_use_plugin';
       $checkbox = new html_checkbox(array('name' => $field_id, 'id' => $field_id, 'value' => 1));
-      $params['blocks'][$this->id]['options'][$field_id] = array(
+      $params['blocks'][$this->ID]['options'][$field_id] = array(
         'title' => html::label($field_id, $this->gettext('use').$this->abook_name),
         'content' => $checkbox->show($rcmail->config->get(google_func::$settings_key_use_plugin))
       );
 
       $field_id = 'rc_google_autosync';
       $checkbox = new html_checkbox(array('name' => $field_id, 'id' => $field_id, 'value' => 1));
-      $params['blocks'][$this->id]['options'][$field_id] = array(
+      $params['blocks'][$this->ID]['options'][$field_id] = array(
         'title' => html::label($field_id, $this->gettext('autosync')),
         'content' => $checkbox->show($rcmail->config->get(google_func::$settings_key_auto_sync))
       );
@@ -122,14 +122,14 @@ class google_addressbook extends rcube_plugin
       if (!google_func::has_redirect()){
           $field_id = 'rc_google_authcode';
           $input_auth = new html_inputfield(array('name' => $field_id, 'id' => $field_id, 'size' => 45));
-          $params['blocks'][$this->id]['options'][$field_id] = array(
+          $params['blocks'][$this->ID]['options'][$field_id] = array(
             'title' => html::label($field_id, $this->gettext('authcode')),
             'content' => $input_auth->show($rcmail->config->get(google_func::$settings_key_auth_code))
           );
           $auth_link['target'] = '_blank';
       }
       $auth_link['href'] = google_func::get_client()->createAuthUrl();
-      $params['blocks'][$this->id]['options']['link'] = array(
+      $params['blocks'][$this->ID]['options']['link'] = array(
         'title' => html::span('', ''),
         'content' => html::a($auth_link, $this->gettext('authcodelink'))
       );
@@ -149,8 +149,8 @@ class google_addressbook extends rcube_plugin
           }
           $params['prefs'][google_func::$settings_key_auth_code] = $new_code;
       }
-      $params['prefs'][google_func::$settings_key_use_plugin] = isset($_POST['rc_use_plugin']) ? true : false;
-      $params['prefs'][google_func::$settings_key_auto_sync] = isset($_POST['rc_google_autosync']) ? true : false;
+      $params['prefs'][google_func::$settings_key_use_plugin] = isset($_POST['rc_use_plugin']);
+      $params['prefs'][google_func::$settings_key_auto_sync] = isset($_POST['rc_google_autosync']);
     }
     return $params;
   }

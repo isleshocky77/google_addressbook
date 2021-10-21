@@ -23,13 +23,13 @@ class google_func
     $config = rcmail::get_instance()->config;
     $client = new Google_Client();
     $client->setApplicationName($config->get('google_addressbook_application_name'));
-    $client->setScopes('https://www.googleapis.com/auth/contacts.readonly');
+    $client->setScopes(['https://www.googleapis.com/auth/contacts.readonly']);
     $client->setClientId($config->get('google_addressbook_client_id'));
     $client->setClientSecret($config->get('google_addressbook_client_secret'));
     $client->setAccessType('offline');
     if (google_func::has_redirect()){
-        $redirect_url = $config->get('google_addressbook_client_redirect_url', null);
-        if ($redirect_url == null){
+        $redirect_url = $config->get('google_addressbook_client_redirect_url');
+        if ($redirect_url === null){
             $redirect_url = 'http'.(isset($_SERVER['HTTPS']) ? 's' : '')."://{$_SERVER['HTTP_HOST']}".parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH).'?_task=settings&_action=plugin.google_addressbook.auth';
         }
     }else{
@@ -44,23 +44,39 @@ class google_func
       return $config->get('google_addressbook_client_redirect', false);
   }
 
-  static function get_auth_code($user) {
+  static function get_auth_code(rcube_user $user) {
     $prefs = $user->get_prefs();
     return $prefs[google_func::$settings_key_auth_code];
   }
 
-  static function get_current_token($user, $from_db = false)
+  static function get_current_token(rcube_user $user)
   {
     $prefs = $user->get_prefs();
     return $prefs[google_func::$settings_key_token];
   }
 
-  static function save_current_token($user, $token)
+  static function save_current_token(rcube_user $user, $token)
   {
     $prefs = array(google_func::$settings_key_token => $token);
-    if(!$user->save_prefs($prefs)) {
-      // TODO: error handling
+    $result = $user->save_prefs($prefs);
+    if(!$result) {
+      rcube::write_log('google_addressbook', 'Failed to save current token.');
     }
+    return $result;
+  }
+
+  static function clear_authdata(rcube_user $user)
+  {
+    $prefs = [
+        google_func::$settings_key_token => null,
+        google_func::$settings_key_auth_code => null,
+        google_func::$settings_key_auto_sync => false,
+    ];
+    $result = $user->save_prefs($prefs);
+    if(!$result) {
+        rcube::write_log('google_addressbook', 'Failed to clear current authdata.');
+    }
+    return $result;
   }
 
   static function is_enabled($user)
@@ -75,11 +91,11 @@ class google_func
     return (bool)$prefs[google_func::$settings_key_auto_sync];
   }
 
-  static function google_authenticate($client, $user)
+  static function google_authenticate(Google_Client $client, $user)
   {
     $rcmail = rcmail::get_instance();
     $token = google_func::get_current_token($user);
-    if($token != null) {
+    if($token !== null) {
       $client->setAccessToken($token);
     }
 
@@ -87,7 +103,7 @@ class google_func
     $msg = '';
 
     try {
-      if($client->getAccessToken() == null || $client->getAccessToken() == '[]') {
+      if($client->getAccessToken() === null || $client->getAccessToken() == '[]') {
         $code = google_func::get_auth_code($user);
         if(empty($code)) {
           throw new Exception($rcmail->gettext('noauthcode', 'google_addressbook'));
@@ -112,6 +128,12 @@ class google_func
       }
     } catch(Exception $e) {
       $msg = $e->getMessage();
+      // invalidate saved authdata as they are probably invalid
+      if (strpos($msg, "'invalid_grant: Bad Request'") !== false) {
+          google_func::clear_authdata($user);
+      }
+      error_log('google_addressbook: ' . $msg);
+      rcube::write_log('google_addressbook', $msg);
     }
 
     if($success) {

@@ -1,20 +1,14 @@
 {
-    "name": "stwa/google-addressbook",
+    "name": "ashus/google-addressbook",
     "type": "roundcube-plugin",
     "description": "Lets you sync your Google Addressbook in readonly mode with Roundcube.",
-    "keywords": ["google","addressbook","sync", "contacts"],
-    "homepage": "https://github.com/stwa/google-addressbook",
+    "keywords": ["google", "addressbook", "sync", "contacts"],
+    "homepage": "https://github.com/Ashus/google-addressbook",
     "license": "GPL-3.0+",
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "http://plugins.roundcube.net"
-        }
-    ],
     "require": {
-        "php": ">=5.2.0",
-        "roundcube/plugin-installer": ">=0.1.6",
-        "google/apiclient": "1.0.*@beta"
+        "php": ">=5.5.0",
+        "roundcube/plugin-installer": "~0.3.0",
+        "google/apiclient": "1.1.8"
     },
     "extra": {
         "roundcube": {
