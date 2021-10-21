@@ -11,9 +11,9 @@ This plugin lets you sync your Google Addressbook in readonly mode with Roundcub
 * PHP JSON extension [http://php.net/manual/en/book.json.php]
 
 ## Installation
-Use Composer for installation.
+Use Composer 2 for installation.
 
-Run `composer require ashus/google_addressbook`.
+Run `composer require ashus/google-addressbook`.
 
 *Do not forget to create the database table using the SQL from SQL/*
 
