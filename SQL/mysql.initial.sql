@@ -16,6 +16,6 @@ CREATE TABLE `contacts_google` (
  CONSTRAINT `user_id_fk_contacts_google` FOREIGN KEY (`user_id`)
    REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
  INDEX `user_contacts_google_index` (`user_id`,`del`)
-) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
+) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */;
 
 /*!40014 SET FOREIGN_KEY_CHECKS=1 */;
